@@ -56,7 +56,13 @@ async function saveTodoEdit(todo: Todo) {
   editingTodo.value = null;
   await load();
 }
-async function removeTodo(id: string) { if (confirm("删除这项待办？")) { await invoke("delete_todo", { id }); await load(); } }
+async function removeTodo(id: string) {
+  if (!window.confirm("删除这项待办？")) return;
+  try { await invoke("delete_todo", { id }); await load(); } catch (err) { error.value = String(err); }
+}
+async function moveTodo(id: string, direction: -1 | 1) {
+  try { await invoke("move_todo", { id, direction }); await load(); } catch (err) { error.value = String(err); }
+}
 
 function newMemo() { selectedMemo.value = null; memoTitle.value = ""; memoBody.value = ""; view.value = "memos"; }
 function selectMemo(memo: Memo) { selectedMemo.value = memo; memoTitle.value = memo.title; memoBody.value = memo.body; }
@@ -80,7 +86,7 @@ onMounted(load);
 <template>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand"><div class="brand-mark">RH</div><div><strong>RED HORIZON</strong><span>航向你的下一件事</span></div></div>
+      <div class="brand"><div class="brand-mark">小小</div><div><strong>小小清单</strong><span>记录每一件要完成的事</span></div></div>
       <nav class="nav-list" aria-label="主导航">
         <button :class="{ active: view === 'todos' }" @click="view = 'todos'"><span class="nav-icon">✓</span><span>待办清单</span><b>{{ remaining }}</b></button>
         <button :class="{ active: view === 'memos' }" @click="view = 'memos'"><span class="nav-icon">≡</span><span>备忘录</span><b>{{ memos.length }}</b></button>
@@ -104,7 +110,7 @@ onMounted(load);
               <input v-if="editingTodo === todo.id" v-model="editingTodoText" class="edit-input" @keyup.enter="saveTodoEdit(todo)" @keyup.esc="editingTodo = null" @blur="saveTodoEdit(todo)" />
               <span v-else class="todo-title" @dblclick="beginTodoEdit(todo)">{{ todo.title }}</span>
               <span class="todo-time">{{ formatDate(todo.updated_at) }}</span>
-              <div class="item-actions"><button aria-label="编辑" title="编辑" @click="beginTodoEdit(todo)">✎</button><button aria-label="删除" title="删除" @click="removeTodo(todo.id)">×</button></div>
+              <div class="item-actions"><button aria-label="上移" title="上移" @click.stop="moveTodo(todo.id, -1)">↑</button><button aria-label="下移" title="下移" @click.stop="moveTodo(todo.id, 1)">↓</button><button aria-label="编辑" title="编辑" @click.stop="beginTodoEdit(todo)">✎</button><button aria-label="删除" title="删除" @click.stop="removeTodo(todo.id)">×</button></div>
             </li>
           </ul>
         </div>

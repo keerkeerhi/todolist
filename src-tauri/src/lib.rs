@@ -16,6 +16,7 @@ struct Todo {
     id: String,
     title: String,
     completed: i64,
+    position: i64,
     created_at: String,
     updated_at: String,
 }
@@ -59,7 +60,7 @@ fn clean(value: &str) -> String { value.trim().to_string() }
 
 #[tauri::command]
 async fn list_todos(state: State<'_, AppState>) -> Result<Vec<Todo>, String> {
-    sqlx::query_as::<_, Todo>("SELECT * FROM todos ORDER BY completed ASC, updated_at DESC")
+    sqlx::query_as::<_, Todo>("SELECT * FROM todos ORDER BY completed ASC, position ASC, updated_at DESC")
         .fetch_all(&state.pool).await.map_err(|e| e.to_string())
 }
 
@@ -68,9 +69,30 @@ async fn save_todo(state: State<'_, AppState>, input: TodoInput) -> Result<Todo,
     let title = clean(&input.title);
     if title.is_empty() { return Err("待办事项不能为空".into()); }
     let id = input.id.unwrap_or_else(|| Uuid::new_v4().to_string());
-    sqlx::query("INSERT INTO todos (id, title) VALUES (?1, ?2) ON CONFLICT(id) DO UPDATE SET title = excluded.title, updated_at = datetime('now')")
+    sqlx::query("INSERT INTO todos (id, title, position) VALUES (?1, ?2, (SELECT COALESCE(MAX(position), -1) + 1 FROM todos)) ON CONFLICT(id) DO UPDATE SET title = excluded.title, updated_at = datetime('now')")
         .bind(&id).bind(&title).execute(&state.pool).await.map_err(|e| e.to_string())?;
     sqlx::query_as::<_, Todo>("SELECT * FROM todos WHERE id = ?1").bind(id).fetch_one(&state.pool).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn move_todo(state: State<'_, AppState>, id: String, direction: i64) -> Result<(), String> {
+    if direction != -1 && direction != 1 { return Err("无效的移动方向".into()); }
+    let mut tx = state.pool.begin().await.map_err(|e| e.to_string())?;
+    let current = sqlx::query_as::<_, (i64, i64)>("SELECT position, completed FROM todos WHERE id = ?1")
+        .bind(&id).fetch_optional(&mut *tx).await.map_err(|e| e.to_string())?
+        .ok_or_else(|| "待办事项不存在".to_string())?;
+    let neighbor = if direction < 0 {
+        sqlx::query_as::<_, (String, i64)>("SELECT id, position FROM todos WHERE completed = ?1 AND position < ?2 ORDER BY position DESC LIMIT 1")
+            .bind(current.1).bind(current.0).fetch_optional(&mut *tx).await.map_err(|e| e.to_string())?
+    } else {
+        sqlx::query_as::<_, (String, i64)>("SELECT id, position FROM todos WHERE completed = ?1 AND position > ?2 ORDER BY position ASC LIMIT 1")
+            .bind(current.1).bind(current.0).fetch_optional(&mut *tx).await.map_err(|e| e.to_string())?
+    };
+    if let Some((neighbor_id, neighbor_position)) = neighbor {
+        sqlx::query("UPDATE todos SET position = ?1 WHERE id = ?2").bind(neighbor_position).bind(&id).execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        sqlx::query("UPDATE todos SET position = ?1 WHERE id = ?2").bind(current.0).bind(neighbor_id).execute(&mut *tx).await.map_err(|e| e.to_string())?;
+    }
+    tx.commit().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -118,7 +140,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            list_todos, save_todo, set_todo_completed, delete_todo,
+            list_todos, save_todo, set_todo_completed, delete_todo, move_todo,
             list_memos, save_memo, delete_memo
         ])
         .run(tauri::generate_context!())
