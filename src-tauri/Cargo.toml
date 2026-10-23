@@ -1,0 +1,19 @@
+[package]
+name = "red-horizon-todolist"
+version = "0.1.0"
+description = "A focused todolist and memo app"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "red_horizon_todolist_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+sqlx = { version = "0.8.6", default-features = false, features = ["sqlite", "runtime-tokio-rustls", "migrate", "macros"] }
+uuid = { version = "1", features = ["v4"] }
