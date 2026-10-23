@@ -132,6 +132,8 @@ async fn delete_memo(state: State<'_, AppState>, id: String) -> Result<(), Strin
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             fs::create_dir_all(&dir)?;
