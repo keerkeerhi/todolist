@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, shallowRef, watch } from "vue";
+import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
@@ -24,6 +25,7 @@ const pendingUpdate = shallowRef<Awaited<ReturnType<typeof check>> | null>(null)
 const updateVersion = ref("");
 const updating = ref(false);
 const isMac = /Macintosh|Mac OS X/i.test(navigator.userAgent);
+const appVersion = ref("");
 
 const remaining = computed(() => todos.value.filter((todo) => !todo.completed).length);
 const completed = computed(() => todos.value.filter((todo) => todo.completed).length);
@@ -164,7 +166,11 @@ async function removeMemo(id: string) {
 function formatDate(value: string) { return value.replace("T", " ").slice(0, 16); }
 function focusTodo() { document.querySelector<HTMLInputElement>("#todo-input")?.focus(); }
 
-onMounted(() => { load(); checkForUpdates(); });
+async function loadAppVersion() {
+  try { appVersion.value = await getVersion(); } catch { appVersion.value = "开发版"; }
+}
+
+onMounted(() => { load(); checkForUpdates(); loadAppVersion(); });
 </script>
 
 <template>
@@ -175,7 +181,7 @@ onMounted(() => { load(); checkForUpdates(); });
         <button :class="{ active: view === 'todos' }" @click="view = 'todos'"><span class="nav-icon">✓</span><span>待办清单</span><b>{{ remaining }}</b></button>
         <button :class="{ active: view === 'memos' }" @click="view = 'memos'"><span class="nav-icon">≡</span><span>备忘录</span><b>{{ memos.length }}</b></button>
       </nav>
-      <div class="sidebar-footer"><div class="flag-line"></div><p>Keep your eyes<br />on the horizon.</p><small>PRIVATE · LOCAL SQLITE</small></div>
+      <div class="sidebar-footer"><div class="flag-line"></div><p>Keep your eyes<br />on the horizon.</p><small>PRIVATE · LOCAL SQLITE</small><small class="app-version">版本 {{ appVersion || '读取中...' }}</small></div>
     </aside>
 
     <main class="content">
