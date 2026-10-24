@@ -1,7 +1,12 @@
-name: Build Red Horizon Windows installer
+name: Release Windows installer
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, for example v0.1.2
+        required: true
+        type: string
   push:
     tags:
       - "v*"
@@ -9,6 +14,8 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,17 +30,16 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build Windows installer
-        run: npm run tauri build -- --bundles nsis
+      - name: Build and publish GitHub Release
+        uses: tauri-apps/tauri-action@v0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-
-      - name: Upload installer
-        uses: actions/upload-artifact@v4
         with:
-          name: red-horizon-windows-installer
-          path: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/nsis/*.zip
-            src-tauri/target/release/bundle/nsis/*.sig
+          tagName: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          releaseName: 小小清单 ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          releaseBody: Windows 安装包及自动更新文件
+          releaseDraft: false
+          prerelease: false
+          args: --bundles nsis

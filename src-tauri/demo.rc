@@ -1,0 +1,65 @@
+fn main() {
+    let arr = [1,3,4];
+    for i in arr {
+        println!("11==={}",i);
+    }
+    for (idx,val) in arr.iter().enumerate() {
+        println!("22=={}:{}",idx,val);
+    }
+    let mut num = 1;
+    while num <= 3 {
+        println!("while==={}",num);
+        num += 1;
+    }
+
+// 如果想修改，用 &mut
+let mut arr2 = [1,2,3];
+for i in &mut arr2 {
+    *i *= 2;
+}
+println!("33=={:?}", arr2);
+
+    let mut num = 1;
+    loop {
+        println!("44=={}",num);
+        num += 1;
+        if num > 5 {
+            break;
+        }
+    }
+
+    let arr3 = [4,5,76];
+    'a: for i in arr3 {
+        if i==5 {
+            continue 'a;
+        }
+        println!("标签：{}",i);
+    }
+    let ran1 = (1..=5).step_by(2);
+    for i in ran1 {
+        println!("区间1：{}",i);
+    }
+    let ran2 = (1..=3).rev();
+    for i in ran2 {
+        println!("区间2：{}",i);
+    }
+    let ran3 = 'a'..='c';
+    for i in ran3 {
+        println!("区间3：{}",i);
+    }
+    let res = test(6);
+    println!("函数1：{}",res);
+
+    fn fun3()->() {
+        println!("ok");
+    }
+    fun3();
+
+    struct Point {
+        
+    }
+}
+
+fn test(a:i32)->i32 {
+    3+3+a
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "小小清单",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "identifier": "com.redhorizon.todolist",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -16,7 +16,7 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": true,
-    "targets": ["dmg", "app"],
+    "targets": ["dmg", "app", "nsis"],
     "category": "Productivity",
     "shortDescription": "简单记录每一件要完成的事",
     "longDescription": "一个简洁、私密的待办清单和备忘录应用。",
@@ -31,7 +31,7 @@
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk2NTI0RjAxNzUzREY0MTEKUldRUjlEMTFBVTlTbHRUTUhKTVplZzQ0WlpXcW55UHUxQVhEZlhudGEyaHdSdTd5RDFCczRyQ1oK",
-      "endpoints": ["https://mhat.dayu1.net/todolist/pc/latest.json"]
+      "endpoints": ["https://github.com/keerkeerhi/todolist/releases/latest/download/latest.json"]
     }
   }
 }

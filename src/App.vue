@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
@@ -107,6 +107,10 @@ function selectMemo(memo: Memo) {
   selectedMemo.value = memo; memoTitle.value = memo.title; memoBody.value = memo.body;
   nextTick(() => setMemoEditorContent(memo.body));
 }
+watch(view, (nextView) => {
+  if (nextView !== "memos") return;
+  nextTick(() => setMemoEditorContent(selectedMemo.value?.body ?? memoBody.value));
+});
 function updateMemoBody() { memoBody.value = memoEditor.value?.innerHTML ?? ""; }
 function insertHtmlAtCursor(html: string) {
   const selection = window.getSelection();
