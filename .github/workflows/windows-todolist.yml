@@ -21,11 +21,13 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            bundles: nsis
-          - platform: macos-13
-            bundles: dmg
+            args: --bundles nsis
           - platform: macos-14
-            bundles: dmg
+            target: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin --bundles dmg
+          - platform: macos-14
+            target: x86_64-apple-darwin
+            args: --target x86_64-apple-darwin --bundles dmg
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout
@@ -40,6 +42,10 @@ jobs:
 
       - name: Install frontend dependencies
         run: npm ci
+
+      - name: Install Rust target
+        if: matrix.target != ''
+        run: rustup target add ${{ matrix.target }}
 
       - name: Build and publish GitHub Release
         uses: tauri-apps/tauri-action@v1
@@ -57,4 +63,4 @@ jobs:
           updaterJsonPreferNsis: true
           uploadUpdaterSignatures: true
           retryAttempts: 3
-          args: --bundles ${{ matrix.bundles }}
+          args: ${{ matrix.args }}
