@@ -1,4 +1,4 @@
-name: Release Windows installer
+name: Release desktop installers
 
 on:
   workflow_dispatch:
@@ -12,8 +12,18 @@ on:
       - "v*"
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build-desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            bundles: nsis
+          - platform: macos-13
+            bundles: dmg
+          - platform: macos-14
+            bundles: dmg
+    runs-on: ${{ matrix.platform }}
     permissions:
       contents: write
     steps:
@@ -39,10 +49,11 @@ jobs:
         with:
           tagName: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           releaseName: 小小清单 ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-          releaseBody: Windows 安装包及自动更新文件
+          releaseBody: Windows 和 macOS 安装包及自动更新文件
           releaseDraft: false
           prerelease: false
           uploadUpdaterJson: true
           updaterJsonPreferNsis: true
           uploadUpdaterSignatures: true
-          args: --bundles nsis
+          retryAttempts: 3
+          args: --bundles ${{ matrix.bundles }}

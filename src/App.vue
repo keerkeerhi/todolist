@@ -23,6 +23,7 @@ const error = ref("");
 const pendingUpdate = ref<Awaited<ReturnType<typeof check>> | null>(null);
 const updateVersion = ref("");
 const updating = ref(false);
+const isMac = /Macintosh|Mac OS X/i.test(navigator.userAgent);
 
 const remaining = computed(() => todos.value.filter((todo) => !todo.completed).length);
 const completed = computed(() => todos.value.filter((todo) => todo.completed).length);
@@ -56,7 +57,7 @@ async function checkForUpdates() {
 }
 
 async function installUpdate() {
-  if (!pendingUpdate.value) return;
+  if (isMac || !pendingUpdate.value) return;
   updating.value = true;
   try {
     await pendingUpdate.value.downloadAndInstall();
@@ -179,7 +180,7 @@ onMounted(() => { load(); checkForUpdates(); });
 
     <main class="content">
       <header class="topbar"><div><p class="eyebrow">{{ view === 'todos' ? 'TODAY\'S COURSE' : 'CAPTAIN\'S LOG' }}</p><h1>{{ view === 'todos' ? '待办清单' : '备忘录' }}</h1></div><button class="primary-button" @click="view === 'todos' ? focusTodo() : newMemo()"><span>＋</span>{{ view === 'todos' ? '添加事项' : '新建备忘录' }}</button></header>
-      <div v-if="pendingUpdate" class="update-banner">发现新版本 {{ updateVersion }}<button :disabled="updating" @click="installUpdate">{{ updating ? '正在更新...' : '立即更新' }}</button></div>
+      <div v-if="pendingUpdate" class="update-banner">发现新版本 {{ updateVersion }}<button v-if="!isMac" :disabled="updating" @click="installUpdate">{{ updating ? '正在更新...' : '立即更新' }}</button><span v-else>请前往 GitHub Releases 下载</span></div>
       <div v-if="error" class="error-banner">{{ error }} <button @click="load">重试</button></div>
 
       <section v-if="view === 'todos'" class="todo-layout">
