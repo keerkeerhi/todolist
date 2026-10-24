@@ -19,8 +19,6 @@ jobs:
         include:
           - platform: windows-latest
             bundles: nsis
-          - platform: macos-13
-            bundles: dmg
           - platform: macos-14
             bundles: dmg
     runs-on: ${{ matrix.platform }}
