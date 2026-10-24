@@ -55,9 +55,20 @@ println!("33=={:?}", arr2);
     }
     fun3();
 
+    #[derive(Debug)]
     struct Point {
-        
+        x:i32,
+        y:i32
     }
+    let p = Point {
+        x: 1,
+        y: 2
+    };
+    let p2 = Point {
+        x:3,
+        ..p
+    };
+    println!("point:{:?}",p2);
 }
 
 fn test(a:i32)->i32 {
