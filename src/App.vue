@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, shallowRef, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
@@ -20,7 +20,7 @@ const memoBody = ref("");
 const memoEditor = ref<HTMLElement | null>(null);
 const loading = ref(true);
 const error = ref("");
-const pendingUpdate = ref<Awaited<ReturnType<typeof check>> | null>(null);
+const pendingUpdate = shallowRef<Awaited<ReturnType<typeof check>> | null>(null);
 const updateVersion = ref("");
 const updating = ref(false);
 const isMac = /Macintosh|Mac OS X/i.test(navigator.userAgent);
