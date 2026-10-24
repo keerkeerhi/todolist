@@ -42,4 +42,5 @@ jobs:
           releaseBody: Windows 安装包及自动更新文件
           releaseDraft: false
           prerelease: false
+          includeUpdaterJson: true
           args: --bundles nsis
